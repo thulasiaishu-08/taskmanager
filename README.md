@@ -5,18 +5,38 @@ progress by status and priority.
 
 Stack: FastAPI + SQLAlchemy + PostgreSQL (backend), React + Vite (frontend).
 
-> Docker/deployment setup is not included yet — this is the local dev version.
-> Docker Compose, Dockerfiles, and env-based container config will be added
-> in a follow-up pass.
+## Quick start (Docker)
+
+Requires Docker and Docker Compose.
+
+```bash
+cp .env.example .env
+# edit .env — at minimum set a real SECRET_KEY
+
+docker-compose up --build
+```
+
+- Frontend: `http://localhost:5173`
+- Backend API / Swagger docs: `http://localhost:8000/docs`
+- Postgres: `localhost:5432`
+
+The database schema is created two ways (both idempotent, so no conflict):
+`database/schema.sql` runs automatically on first container startup via
+Postgres's `docker-entrypoint-initdb.d`, and the backend also runs
+`Base.metadata.create_all()` on startup. See `REQUIREMENTS.md` for the full
+list of environment variables used by `docker-compose.yml`.
 
 ## Project structure
 
 ```
 taskmanager/
-  backend/       FastAPI app (auth, projects, tasks)
-  frontend/      React app (Vite)
-  database/      Reference SQL schema
+  backend/       FastAPI app (auth, projects, tasks) + Dockerfile
+  frontend/      React app (Vite) + Dockerfile (nginx multi-stage)
+  database/      Reference SQL schema (also used as init script)
+  docker-compose.yml
 ```
+
+## Manual setup (without Docker)
 
 ## Backend setup
 
