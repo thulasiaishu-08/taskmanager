@@ -1,6 +1,7 @@
 import uuid
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -26,19 +27,20 @@ def _get_owned_project(db: Session, project_id: uuid.UUID, user: User) -> Projec
 
 @router.get("", response_model=list[ProjectOut])
 def list_projects(
+    response: Response,
+    search: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return (
-        db.query(Project)
-        .filter(Project.owner_id == current_user.id)
-        .order_by(Project.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+    query = db.query(Project).filter(Project.owner_id == current_user.id)
+    if search:
+        query = query.filter(Project.title.ilike(f"%{search}%"))
+
+    response.headers["X-Total-Count"] = str(query.count())
+
+    return query.order_by(Project.created_at.desc()).offset(skip).limit(limit).all()
 
 
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)

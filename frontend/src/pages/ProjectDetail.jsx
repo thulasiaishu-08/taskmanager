@@ -13,6 +13,8 @@ export default function ProjectDetail() {
   const [editingTask, setEditingTask] = useState(null);
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState("");
 
   async function loadProject() {
@@ -26,8 +28,10 @@ export default function ProjectDetail() {
       const params = {};
       if (statusFilter) params.status_filter = statusFilter;
       if (priorityFilter) params.priority = priorityFilter;
+      if (search) params.search = search;
       const res = await apiClient.get(`/projects/${projectId}/tasks`, { params });
       setTasks(res.data);
+      setTotalCount(Number(res.headers["x-total-count"] ?? res.data.length));
     } catch {
       setError("Failed to load tasks");
     } finally {
@@ -41,7 +45,7 @@ export default function ProjectDetail() {
 
   useEffect(() => {
     loadTasks();
-  }, [projectId, statusFilter, priorityFilter]);
+  }, [projectId, statusFilter, priorityFilter, search]);
 
   async function handleCreate(values) {
     await apiClient.post(`/projects/${projectId}/tasks`, values);
@@ -88,11 +92,17 @@ export default function ProjectDetail() {
       <TaskFilterBar
         statusFilter={statusFilter}
         priorityFilter={priorityFilter}
-        onChange={({ status, priority }) => {
+        search={search}
+        onChange={({ status, priority, search: nextSearch }) => {
           setStatusFilter(status);
           setPriorityFilter(priority);
+          setSearch(nextSearch);
         }}
       />
+
+      {!loading && tasks.length > 0 && (
+        <p className="task-count">{totalCount} task(s)</p>
+      )}
 
       {loading ? (
         <p>Loading...</p>

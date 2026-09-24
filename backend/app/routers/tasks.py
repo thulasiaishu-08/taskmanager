@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -42,8 +42,10 @@ def _get_owned_task(db: Session, task_id: uuid.UUID, user: User) -> Task:
 @router.get("/projects/{project_id}/tasks", response_model=list[TaskOut])
 def list_tasks(
     project_id: uuid.UUID,
+    response: Response,
     status_filter: Optional[TaskStatus] = None,
     priority: Optional[TaskPriority] = None,
+    search: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
@@ -56,6 +58,10 @@ def list_tasks(
         query = query.filter(Task.status == status_filter)
     if priority is not None:
         query = query.filter(Task.priority == priority)
+    if search:
+        query = query.filter(Task.title.ilike(f"%{search}%"))
+
+    response.headers["X-Total-Count"] = str(query.count())
 
     return (
         query.order_by(Task.created_at.desc()).offset(skip).limit(limit).all()

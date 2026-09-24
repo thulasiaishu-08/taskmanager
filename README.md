@@ -99,15 +99,39 @@ App runs at `http://localhost:5173`.
 | POST | `/projects` | Create a project |
 | PUT | `/projects/{id}` | Update a project |
 | DELETE | `/projects/{id}` | Delete a project (cascades to tasks) |
-| GET | `/projects/{id}/tasks` | List tasks (`?status_filter=&priority=`) |
+| GET | `/projects/{id}/tasks` | List tasks (`?status_filter=&priority=&search=`) |
 | POST | `/projects/{id}/tasks` | Create a task |
 | PUT | `/tasks/{id}` | Update a task |
 | DELETE | `/tasks/{id}` | Delete a task |
 | GET | `/health` | Health check |
 
-Full interactive docs at `/docs` (Swagger) once the backend is running.
+Full interactive docs at `/docs` (Swagger) once the backend is running. A
+ready-to-import Postman collection is at `postman_collection.json` (set the
+`baseUrl` variable, run Login, and it auto-captures the JWT for the rest of
+the requests).
+
+`GET /projects` and `GET /projects/{id}/tasks` support `skip`/`limit`
+pagination, a `search` param (matches on title), and return the total
+matching row count in the `X-Total-Count` response header.
 
 ## Database schema
 
 See `database/schema.sql` for the reference PostgreSQL schema (users,
 projects, tasks, with FK constraints, cascade deletes, and indexes).
+
+## Tests
+
+Backend has a pytest suite (17 tests) covering auth, project/task CRUD,
+ownership isolation, filtering, search, and cascade delete — run against a
+real PostgreSQL database (no mocking).
+
+```bash
+cd backend
+source venv/bin/activate
+createdb taskmanager_test   # one-time, owned by the same DB user
+pytest -v
+```
+
+Set `TEST_DATABASE_URL` to point elsewhere if needed. CI (`.github/workflows/ci.yml`)
+runs this suite against a Postgres service container on every push/PR, and
+also builds the frontend.

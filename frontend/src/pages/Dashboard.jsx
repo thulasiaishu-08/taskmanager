@@ -8,12 +8,15 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
+  const [search, setSearch] = useState("");
   const [error, setError] = useState("");
 
   async function loadProjects() {
     setLoading(true);
     try {
-      const res = await apiClient.get("/projects");
+      const params = {};
+      if (search) params.search = search;
+      const res = await apiClient.get("/projects", { params });
       setProjects(res.data);
     } catch {
       setError("Failed to load projects");
@@ -24,7 +27,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [search]);
 
   async function handleCreate(values) {
     await apiClient.post("/projects", values);
@@ -54,6 +57,18 @@ export default function Dashboard() {
       </div>
 
       {error && <p className="form-error">{error}</p>}
+
+      <div className="filter-bar">
+        <label>
+          Search
+          <input
+            type="text"
+            placeholder="Search projects by title..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </label>
+      </div>
 
       {showForm && (
         <ProjectForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
