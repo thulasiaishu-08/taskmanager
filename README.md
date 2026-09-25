@@ -9,6 +9,17 @@ Stack: FastAPI + SQLAlchemy + PostgreSQL (backend), React + Vite (frontend).
 
 Only requirement: **Docker Desktop** installed and running.
 
+### Windows (PowerShell or Command Prompt)
+
+```powershell
+git clone https://github.com/thulasiaishu-08/taskmanager.git
+cd taskmanager
+copy .env.example .env
+docker compose up --build
+```
+
+### macOS / Linux
+
 ```bash
 git clone https://github.com/thulasiaishu-08/taskmanager.git
 cd taskmanager
@@ -20,8 +31,9 @@ Then open **http://localhost:5173**, register an account, and start creating
 projects/tasks.
 
 > Use `docker compose` (space) — current Docker Desktop ships this as a CLI
-> plugin. If your Docker install only has the older standalone binary, use
-> `docker-compose up --build` (hyphen) instead; both do the same thing.
+> plugin, on both Windows and macOS. If your Docker install only has the
+> older standalone binary, use `docker-compose up --build` (hyphen) instead;
+> both do the same thing.
 
 - Frontend: `http://localhost:5173`
 - Backend API / Swagger docs: `http://localhost:8000/docs`
@@ -79,6 +91,17 @@ Backend has a pytest suite (17 tests) covering auth, project/task CRUD,
 ownership isolation, filtering, search, and cascade delete — run against a
 real PostgreSQL database (no mocking).
 
+### Windows
+
+```powershell
+cd backend
+venv\Scripts\activate
+createdb taskmanager_test
+pytest -v
+```
+
+### macOS / Linux
+
 ```bash
 cd backend
 source venv/bin/activate
@@ -92,11 +115,23 @@ container on every push/PR, and also builds the frontend.
 
 ## Manual setup (without Docker)
 
-See `REQUIREMENTS.md` for full system prerequisites (Python, Node, Postgres
-versions and install commands per OS). Requires Postgres already installed
-and running (`brew install postgresql@16` / `apt install postgresql`).
+See `REQUIREMENTS.md` for full system prerequisites and per-OS PostgreSQL
+install steps. Below assumes PostgreSQL is already installed and running.
 
-### 1. Database — one command
+### 1. Database
+
+**Windows** (PowerShell/Command Prompt — run the PostgreSQL bin folder's
+`psql`/`createuser`/`createdb`, e.g. `C:\Program Files\PostgreSQL\16\bin`,
+if they're not already on PATH):
+
+```powershell
+createuser -s taskmanager
+psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';"
+createdb -O taskmanager taskmanager
+psql -d taskmanager -f database\schema.sql
+```
+
+**macOS / Linux** (one line):
 
 ```bash
 createuser -s taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';" && createdb -O taskmanager taskmanager && psql -d taskmanager -f database/schema.sql
@@ -108,32 +143,47 @@ createuser -s taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PA
 > runtime. This mirrors how the official `postgres` Docker image's
 > `POSTGRES_USER` is a superuser too.
 
-### 2. Backend — one command installs every library/tool
+### 2. Backend — installs every library/tool
+
+**Windows:**
+
+```powershell
+cd backend
+py -3.11 -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+uvicorn app.main:app --reload
+```
+
+**macOS / Linux:**
 
 ```bash
 cd backend && python3.11 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
-```
-
-> Use `python3.11` specifically on macOS — Homebrew's default `python3`
-> (3.14 on macOS 26 Tahoe) has a broken `pyexpat` that makes `venv` creation
-> fail. `python3.10`+ works fine elsewhere.
-
-Then configure and run:
-
-```bash
 cp .env.example .env   # edit DATABASE_URL / SECRET_KEY
 uvicorn app.main:app --reload
 ```
 
+> Use `python3.11` (or `py -3.11` on Windows) specifically on macOS —
+> Homebrew's default `python3` (3.14 on macOS 26 Tahoe) has a broken
+> `pyexpat` that makes `venv` creation fail. Any `python3.10`+ works fine
+> elsewhere.
+
 ### 3. Frontend — one command (separate terminal)
+
+**Windows:**
+
+```powershell
+cd frontend
+npm install
+copy .env.example .env
+npm run dev
+```
+
+**macOS / Linux:**
 
 ```bash
 cd frontend && npm install
-```
-
-Then configure and run:
-
-```bash
 cp .env.example .env
 npm run dev
 ```
