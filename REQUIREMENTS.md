@@ -54,12 +54,17 @@ sudo systemctl start postgresql
 - Node.js: https://nodejs.org/ (18+ LTS)
 - PostgreSQL: https://www.postgresql.org/download/windows/
 
-### Database setup (one-time)
+### Database setup — one command
 
-```sql
-CREATE USER taskmanager WITH PASSWORD 'taskmanager';
-CREATE DATABASE taskmanager OWNER taskmanager;
+Creates the user, sets the password, creates the database, and applies the
+schema, all in one line:
+
+```bash
+createuser taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';" && createdb -O taskmanager taskmanager && psql -d taskmanager -f database/schema.sql
 ```
+
+(Windows / no `createuser` on PATH: run the equivalent `CREATE USER` /
+`CREATE DATABASE` SQL via `psql` or pgAdmin instead.)
 
 ### Run backend
 
@@ -69,11 +74,19 @@ SQLAlchemy, psycopg2, pydantic, python-jose, passlib, pytest...).
 > `bcrypt` is pinned to `4.0.1` on purpose — `passlib` 1.7.4 breaks on
 > `bcrypt` 4.1+/5.x (password hashing raises an error at runtime).
 
+One command installs every backend library/tool (after creating the venv):
+
 ```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+cd backend && python3.11 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+```
+
+> Use `python3.11` specifically on macOS — Homebrew's default `python3`
+> (3.14 on macOS 26 Tahoe) has a broken `pyexpat` that makes `venv` creation
+> fail with `ensurepip` errors. Any `python3.10`+ works fine on other OSes.
+
+Then configure and run:
+
+```bash
 cp .env.example .env            # edit DATABASE_URL / SECRET_KEY
 uvicorn app.main:app --reload
 ```
@@ -83,11 +96,15 @@ Backend runs on **port 8000**.
 ### Run frontend
 
 Node packages are declared in `frontend/package.json` (React 18, React
-Router 6, axios, Vite 5).
+Router 6, axios, Vite 5). One command installs everything:
 
 ```bash
-cd frontend
-npm install
+cd frontend && npm install
+```
+
+Then configure and run:
+
+```bash
 cp .env.example .env             # set VITE_API_URL if backend isn't on :8000
 npm run dev
 ```

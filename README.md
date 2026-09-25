@@ -93,19 +93,41 @@ container on every push/PR, and also builds the frontend.
 ## Manual setup (without Docker)
 
 See `REQUIREMENTS.md` for full system prerequisites (Python, Node, Postgres
-versions and install commands per OS). Short version:
+versions and install commands per OS). Requires Postgres already installed
+and running (`brew install postgresql@16` / `apt install postgresql`).
+
+### 1. Database — one command
 
 ```bash
-# Backend
-cd backend
-python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
+createuser taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';" && createdb -O taskmanager taskmanager && psql -d taskmanager -f database/schema.sql
+```
+
+### 2. Backend — one command installs every library/tool
+
+```bash
+cd backend && python3.11 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+```
+
+> Use `python3.11` specifically on macOS — Homebrew's default `python3`
+> (3.14 on macOS 26 Tahoe) has a broken `pyexpat` that makes `venv` creation
+> fail. `python3.10`+ works fine elsewhere.
+
+Then configure and run:
+
+```bash
 cp .env.example .env   # edit DATABASE_URL / SECRET_KEY
 uvicorn app.main:app --reload
+```
 
-# Frontend (separate terminal)
-cd frontend
-npm install
+### 3. Frontend — one command (separate terminal)
+
+```bash
+cd frontend && npm install
+```
+
+Then configure and run:
+
+```bash
 cp .env.example .env
 npm run dev
 ```
