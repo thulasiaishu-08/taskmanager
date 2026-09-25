@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Lock, Mail } from "lucide-react";
+import AuthLayout from "../components/AuthLayout";
+import Button from "../components/ui/Button";
+import { Field, Input } from "../components/ui/Field";
 import { useAuth } from "../context/AuthContext";
+import { apiError } from "../lib/constants";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,42 +23,55 @@ export default function Login() {
       await login(email, password);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.detail || "Login failed");
+      setError(apiError(err, "Login failed"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="auth-page">
-      <form className="card-form" onSubmit={handleSubmit}>
-        <h1>Log in</h1>
-        {error && <p className="form-error">{error}</p>}
-        <label>
-          Email
-          <input
+    <AuthLayout title="Welcome back" subtitle="Log in to pick up where you left off.">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            icon={Mail}
             type="email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             required
           />
-        </label>
-        <label>
-          Password
-          <input
+        </Field>
+        <Field label="Password" htmlFor="password">
+          <Input
+            id="password"
+            icon={Lock}
             type="password"
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
             required
           />
-        </label>
-        <button type="submit" className="btn btn-primary" disabled={submitting}>
+        </Field>
+        {error && (
+          <p className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+            {error}
+          </p>
+        )}
+        <Button type="submit" loading={submitting} className="mt-2 w-full justify-center">
           Log in
-        </button>
-        <p>
-          No account? <Link to="/register">Register</Link>
-        </p>
+          {!submitting && <ArrowRight className="size-4" />}
+        </Button>
       </form>
-    </div>
+      <p className="mt-8 text-center text-sm text-ink-muted">
+        New here?{" "}
+        <Link to="/register" className="font-medium text-brand hover:text-ink transition-colors">
+          Create an account
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }

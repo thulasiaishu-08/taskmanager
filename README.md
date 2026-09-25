@@ -49,6 +49,16 @@ That's it — no Python/Node/Postgres install needed, everything runs inside
 containers. See `REQUIREMENTS.md` if Docker isn't available and you need to
 run it manually instead.
 
+## Features
+
+- Register / log in with JWT auth; each user only sees their own projects
+- Dashboard of projects with search, create/edit/delete (delete cascades to tasks)
+- Project page with a **drag-and-drop Kanban board** (drag a card to another
+  column to change its status) and an alternative list view
+- Filter tasks by status and priority, search by title
+- Live status counts and completion progress per project
+- Responsive dark UI built with Tailwind CSS and Motion animations
+
 ## Project structure
 
 ```
