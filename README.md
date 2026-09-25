@@ -99,8 +99,14 @@ and running (`brew install postgresql@16` / `apt install postgresql`).
 ### 1. Database — one command
 
 ```bash
-createuser taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';" && createdb -O taskmanager taskmanager && psql -d taskmanager -f database/schema.sql
+createuser -s taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';" && createdb -O taskmanager taskmanager && psql -d taskmanager -f database/schema.sql
 ```
+
+> `-s` makes `taskmanager` a superuser — needed because `schema.sql` runs as
+> whichever OS-mapped role invokes `psql`, not necessarily `taskmanager`
+> itself; without it the app hits "permission denied for table users" at
+> runtime. This mirrors how the official `postgres` Docker image's
+> `POSTGRES_USER` is a superuser too.
 
 ### 2. Backend — one command installs every library/tool
 

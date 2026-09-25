@@ -60,8 +60,14 @@ Creates the user, sets the password, creates the database, and applies the
 schema, all in one line:
 
 ```bash
-createuser taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';" && createdb -O taskmanager taskmanager && psql -d taskmanager -f database/schema.sql
+createuser -s taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';" && createdb -O taskmanager taskmanager && psql -d taskmanager -f database/schema.sql
 ```
+
+> `-s` makes `taskmanager` a superuser — needed because `schema.sql` runs as
+> whichever OS-mapped role invokes `psql`, not necessarily `taskmanager`
+> itself; without it the app hits "permission denied for table users" at
+> runtime. This mirrors how the official `postgres` Docker image's
+> `POSTGRES_USER` is a superuser too.
 
 (Windows / no `createuser` on PATH: run the equivalent `CREATE USER` /
 `CREATE DATABASE` SQL via `psql` or pgAdmin instead.)
