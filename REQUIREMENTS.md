@@ -1,9 +1,27 @@
-# Requirements — Running Task Manager on a New System
+# Requirements — Running Task Manager
 
-Everything needed to run this project on another machine (no Docker yet — see
-README.md's note on that).
+## Easy way: Docker (recommended)
 
-## System prerequisites
+Only requirement: **Docker Desktop** (includes Docker Compose).
+
+- macOS: `brew install --cask docker` (then open Docker.app once)
+- Windows/Linux: https://www.docker.com/products/docker-desktop/
+
+```bash
+git clone https://github.com/thulasiaishu-08/taskmanager.git
+cd taskmanager
+cp .env.example .env
+docker-compose up --build
+```
+
+Open `http://localhost:5173`. No Python/Node/Postgres install needed —
+everything (backend, frontend, database) runs in containers. See
+`docker-compose.yml` / root `.env.example` for the full list of environment
+variables (`POSTGRES_*`, `SECRET_KEY`, `VITE_API_URL`, ports).
+
+## Manual way (no Docker)
+
+Needed if Docker isn't available on the machine.
 
 | Tool | Version | Check |
 | --- | --- | --- |
@@ -33,37 +51,20 @@ sudo systemctl start postgresql
 - Node.js: https://nodejs.org/ (18+ LTS)
 - PostgreSQL: https://www.postgresql.org/download/windows/
 
-## Database setup (one-time)
-
-Create the DB user and database (adjust password as needed):
+### Database setup (one-time)
 
 ```sql
 CREATE USER taskmanager WITH PASSWORD 'taskmanager';
 CREATE DATABASE taskmanager OWNER taskmanager;
 ```
 
-## Backend requirements
+### Run backend
 
-Python packages are pinned in `backend/requirements.txt`:
-
-```
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-sqlalchemy==2.0.35
-psycopg2-binary==2.9.9
-pydantic==2.9.2
-pydantic-settings==2.5.2
-email-validator==2.2.0
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-bcrypt==4.0.1
-python-multipart==0.0.9
-```
+Python packages are pinned in `backend/requirements.txt` (FastAPI,
+SQLAlchemy, psycopg2, pydantic, python-jose, passlib, pytest...).
 
 > `bcrypt` is pinned to `4.0.1` on purpose — `passlib` 1.7.4 breaks on
 > `bcrypt` 4.1+/5.x (password hashing raises an error at runtime).
-
-Setup:
 
 ```bash
 cd backend
@@ -76,10 +77,10 @@ uvicorn app.main:app --reload
 
 Backend runs on **port 8000**.
 
-## Frontend requirements
+### Run frontend
 
-Node packages are declared in `frontend/package.json` (React 18, React Router
-6, axios, Vite 5). Setup:
+Node packages are declared in `frontend/package.json` (React 18, React
+Router 6, axios, Vite 5).
 
 ```bash
 cd frontend
@@ -90,7 +91,7 @@ npm run dev
 
 Frontend runs on **port 5173**.
 
-## Environment variables
+### Environment variables
 
 **backend/.env**
 
@@ -107,7 +108,7 @@ Frontend runs on **port 5173**.
 | --- | --- |
 | `VITE_API_URL` | `http://localhost:8000` |
 
-## Ports summary
+### Ports summary
 
 | Service | Port |
 | --- | --- |

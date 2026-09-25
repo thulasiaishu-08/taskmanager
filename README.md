@@ -5,26 +5,27 @@ progress by status and priority.
 
 Stack: FastAPI + SQLAlchemy + PostgreSQL (backend), React + Vite (frontend).
 
-## Quick start (Docker)
+## Run it (clone → run, 4 steps)
 
-Requires Docker and Docker Compose.
+Only requirement: **Docker Desktop** installed and running.
 
 ```bash
+git clone https://github.com/thulasiaishu-08/taskmanager.git
+cd taskmanager
 cp .env.example .env
-# edit .env — at minimum set a real SECRET_KEY
-
 docker-compose up --build
 ```
+
+Then open **http://localhost:5173**, register an account, and start creating
+projects/tasks.
 
 - Frontend: `http://localhost:5173`
 - Backend API / Swagger docs: `http://localhost:8000/docs`
 - Postgres: `localhost:5432`
 
-The database schema is created two ways (both idempotent, so no conflict):
-`database/schema.sql` runs automatically on first container startup via
-Postgres's `docker-entrypoint-initdb.d`, and the backend also runs
-`Base.metadata.create_all()` on startup. See `REQUIREMENTS.md` for the full
-list of environment variables used by `docker-compose.yml`.
+That's it — no Python/Node/Postgres install needed, everything runs inside
+containers. See `REQUIREMENTS.md` if Docker isn't available and you need to
+run it manually instead.
 
 ## Project structure
 
@@ -36,58 +37,6 @@ taskmanager/
   docker-compose.yml
 ```
 
-## Manual setup (without Docker)
-
-## Backend setup
-
-Requires Python 3.10+ and a running PostgreSQL instance.
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-cp .env.example .env
-# edit .env with your DATABASE_URL and a real SECRET_KEY
-
-uvicorn app.main:app --reload
-```
-
-The API is served at `http://localhost:8000`. Tables are created
-automatically on startup. Swagger docs: `http://localhost:8000/docs`.
-
-Create the database first, e.g.:
-
-```sql
-CREATE USER taskmanager WITH PASSWORD 'taskmanager';
-CREATE DATABASE taskmanager OWNER taskmanager;
-```
-
-### Environment variables (backend/.env)
-
-| Variable | Description |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `SECRET_KEY` | JWT signing secret |
-| `ALGORITHM` | JWT algorithm (default `HS256`) |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token lifetime in minutes |
-
-## Frontend setup
-
-Requires Node.js 18+.
-
-```bash
-cd frontend
-npm install
-cp .env.example .env
-# edit .env if the API isn't on http://localhost:8000
-
-npm run dev
-```
-
-App runs at `http://localhost:5173`.
-
 ## API overview
 
 | Method | Path | Description |
@@ -95,7 +44,7 @@ App runs at `http://localhost:5173`.
 | POST | `/auth/register` | Register a user |
 | POST | `/auth/login` | Log in, get JWT |
 | GET | `/auth/me` | Current user profile |
-| GET | `/projects` | List own projects |
+| GET | `/projects` | List own projects (`?search=&skip=&limit=`) |
 | POST | `/projects` | Create a project |
 | PUT | `/projects/{id}` | Update a project |
 | DELETE | `/projects/{id}` | Delete a project (cascades to tasks) |
@@ -110,14 +59,15 @@ ready-to-import Postman collection is at `postman_collection.json` (set the
 `baseUrl` variable, run Login, and it auto-captures the JWT for the rest of
 the requests).
 
-`GET /projects` and `GET /projects/{id}/tasks` support `skip`/`limit`
-pagination, a `search` param (matches on title), and return the total
-matching row count in the `X-Total-Count` response header.
+`GET /projects` and `GET /projects/{id}/tasks` return the total matching row
+count in the `X-Total-Count` response header.
 
 ## Database schema
 
 See `database/schema.sql` for the reference PostgreSQL schema (users,
-projects, tasks, with FK constraints, cascade deletes, and indexes).
+projects, tasks, with FK constraints, cascade deletes, and indexes). It runs
+automatically on first container startup; the backend also runs
+`Base.metadata.create_all()` on startup (both idempotent, no conflict).
 
 ## Tests
 
@@ -132,6 +82,26 @@ createdb taskmanager_test   # one-time, owned by the same DB user
 pytest -v
 ```
 
-Set `TEST_DATABASE_URL` to point elsewhere if needed. CI (`.github/workflows/ci.yml`)
-runs this suite against a Postgres service container on every push/PR, and
-also builds the frontend.
+Set `TEST_DATABASE_URL` to point elsewhere if needed. CI
+(`.github/workflows/ci.yml`) runs this suite against a Postgres service
+container on every push/PR, and also builds the frontend.
+
+## Manual setup (without Docker)
+
+See `REQUIREMENTS.md` for full system prerequisites (Python, Node, Postgres
+versions and install commands per OS). Short version:
+
+```bash
+# Backend
+cd backend
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # edit DATABASE_URL / SECRET_KEY
+uvicorn app.main:app --reload
+
+# Frontend (separate terminal)
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
