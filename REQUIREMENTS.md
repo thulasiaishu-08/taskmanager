@@ -11,8 +11,11 @@ Only requirement: **Docker Desktop** (includes Docker Compose).
 git clone https://github.com/thulasiaishu-08/taskmanager.git
 cd taskmanager
 cp .env.example .env
-docker-compose up --build
+docker compose up --build
 ```
+
+> Use `docker compose` (space, current Docker Desktop CLI plugin). Older
+> standalone installs use `docker-compose` (hyphen) instead — same effect.
 
 Open `http://localhost:5173`. No Python/Node/Postgres install needed —
 everything (backend, frontend, database) runs in containers. See

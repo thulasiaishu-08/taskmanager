@@ -13,11 +13,15 @@ Only requirement: **Docker Desktop** installed and running.
 git clone https://github.com/thulasiaishu-08/taskmanager.git
 cd taskmanager
 cp .env.example .env
-docker-compose up --build
+docker compose up --build
 ```
 
 Then open **http://localhost:5173**, register an account, and start creating
 projects/tasks.
+
+> Use `docker compose` (space) — current Docker Desktop ships this as a CLI
+> plugin. If your Docker install only has the older standalone binary, use
+> `docker-compose up --build` (hyphen) instead; both do the same thing.
 
 - Frontend: `http://localhost:5173`
 - Backend API / Swagger docs: `http://localhost:8000/docs`
