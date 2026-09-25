@@ -9,10 +9,28 @@ Stack: FastAPI + SQLAlchemy + PostgreSQL (backend), React + Vite (frontend).
 
 Only requirement: **Docker Desktop** installed and running.
 
+Clone the repository:
+
 ```powershell
 git clone https://github.com/thulasiaishu-08/taskmanager.git
+```
+
+Move into the project folder:
+
+```powershell
 cd taskmanager
+```
+
+Copy the example environment file (edit `.env` if you want different ports
+or secrets):
+
+```powershell
 copy .env.example .env
+```
+
+Build the images and start the database, backend, and frontend containers:
+
+```powershell
 docker compose up --build
 ```
 
@@ -79,10 +97,27 @@ Backend has a pytest suite (17 tests) covering auth, project/task CRUD,
 ownership isolation, filtering, search, and cascade delete — run against a
 real PostgreSQL database (no mocking).
 
+Move into the backend folder:
+
 ```powershell
 cd backend
+```
+
+Activate the virtual environment created during backend setup:
+
+```powershell
 venv\Scripts\activate
+```
+
+Create a separate test database (one-time only):
+
+```powershell
 createdb taskmanager_test
+```
+
+Run the test suite:
+
+```powershell
 pytest -v
 ```
 
@@ -93,17 +128,34 @@ container on every push/PR, and also builds the frontend.
 ## Manual setup (without Docker)
 
 See `REQUIREMENTS.md` for full system prerequisites and PostgreSQL install
-steps. Below assumes PostgreSQL is already installed and running.
+steps. Below assumes PostgreSQL is already installed and running. If the
+commands below aren't found, add PostgreSQL's `bin` folder (e.g.
+`C:\Program Files\PostgreSQL\16\bin`) to PATH first.
 
 ### 1. Database
 
-Run the PostgreSQL bin folder's `psql`/`createuser`/`createdb`, e.g.
-`C:\Program Files\PostgreSQL\16\bin`, if they're not already on PATH:
+Create the `taskmanager` database role as a superuser — needed so it can own
+and access everything `schema.sql` creates (see note below):
 
 ```powershell
 createuser -s taskmanager
+```
+
+Set its password:
+
+```powershell
 psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';"
+```
+
+Create the `taskmanager` database, owned by that role:
+
+```powershell
 createdb -O taskmanager taskmanager
+```
+
+Apply the schema (tables, types, indexes) to it:
+
+```powershell
 psql -d taskmanager -f database\schema.sql
 ```
 
@@ -115,12 +167,40 @@ psql -d taskmanager -f database\schema.sql
 
 ### 2. Backend — installs every library/tool
 
+Move into the backend folder:
+
 ```powershell
 cd backend
+```
+
+Create a Python virtual environment (see note on `py -3.11` below):
+
+```powershell
 py -3.11 -m venv venv
+```
+
+Activate it:
+
+```powershell
 venv\Scripts\activate
+```
+
+Install every backend library/tool from `requirements.txt`:
+
+```powershell
 pip install -r requirements.txt
+```
+
+Copy the environment template (edit `DATABASE_URL` / `SECRET_KEY` if
+needed):
+
+```powershell
 copy .env.example .env
+```
+
+Start the backend API (runs on port 8000):
+
+```powershell
 uvicorn app.main:app --reload
 ```
 
@@ -130,9 +210,26 @@ uvicorn app.main:app --reload
 
 ### 3. Frontend — one command (separate terminal)
 
+Move into the frontend folder:
+
 ```powershell
 cd frontend
+```
+
+Install every frontend dependency:
+
+```powershell
 npm install
+```
+
+Copy the environment template:
+
+```powershell
 copy .env.example .env
+```
+
+Start the frontend dev server (runs on port 5173):
+
+```powershell
 npm run dev
 ```
