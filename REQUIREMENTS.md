@@ -4,10 +4,9 @@
 
 Only requirement: **Docker Desktop** (includes Docker Compose).
 
-- Windows: https://www.docker.com/products/docker-desktop/ (or `winget install Docker.DockerDesktop`)
-- macOS: `brew install --cask docker` (then open Docker.app once)
-
-### Windows (PowerShell or Command Prompt)
+Install: https://www.docker.com/products/docker-desktop/ (or
+`winget install Docker.DockerDesktop`), then open Docker Desktop once so it
+finishes starting.
 
 ```powershell
 git clone https://github.com/thulasiaishu-08/taskmanager.git
@@ -16,18 +15,9 @@ copy .env.example .env
 docker compose up --build
 ```
 
-### macOS / Linux
-
-```bash
-git clone https://github.com/thulasiaishu-08/taskmanager.git
-cd taskmanager
-cp .env.example .env
-docker compose up --build
-```
-
-> Use `docker compose` (space, current Docker Desktop CLI plugin, on both
-> Windows and macOS). Older standalone installs use `docker-compose`
-> (hyphen) instead — same effect.
+> Use `docker compose` (space) — current Docker Desktop ships this as a CLI
+> plugin. Older standalone installs use `docker-compose` (hyphen) instead —
+> same effect.
 
 Open `http://localhost:5173`. No Python/Node/Postgres install needed —
 everything (backend, frontend, database) runs in containers. See
@@ -40,41 +30,23 @@ Needed if Docker isn't available on the machine.
 
 | Tool | Version | Check |
 | --- | --- | --- |
-| Python | 3.10+ | `python3 --version` |
+| Python | 3.10+ | `python --version` |
 | Node.js | 18+ | `node --version` |
 | npm | comes with Node | `npm --version` |
 | PostgreSQL | 14+ | `psql --version` |
 
-### Install on Windows
+### Install prerequisites
 
-- Python: https://www.python.org/downloads/ (3.10+, tick "Add to PATH")
+- Python: https://www.python.org/downloads/ (3.10+, tick "Add python.exe to PATH")
 - Node.js: https://nodejs.org/ (18+ LTS)
 - PostgreSQL: https://www.postgresql.org/download/windows/ (the installer
   adds `psql`/`createuser`/`createdb` under
   `C:\Program Files\PostgreSQL\<version>\bin`)
 
-### Install on macOS (Homebrew)
-
-```bash
-brew install python@3.11 node postgresql@16
-brew services start postgresql@16
-```
-
-### Install on Ubuntu/Debian
-
-```bash
-sudo apt update
-sudo apt install -y python3 python3-venv python3-pip nodejs npm postgresql postgresql-contrib
-sudo systemctl start postgresql
-```
-
 ### Database setup
 
 Creates the user, sets the password, creates the database, and applies the
-schema.
-
-**Windows** (PowerShell/Command Prompt; add PostgreSQL's `bin` folder to
-PATH first if these commands aren't found):
+schema:
 
 ```powershell
 createuser -s taskmanager
@@ -83,17 +55,12 @@ createdb -O taskmanager taskmanager
 psql -d taskmanager -f database\schema.sql
 ```
 
-**macOS / Linux** (one line):
-
-```bash
-createuser -s taskmanager && psql -d postgres -c "ALTER USER taskmanager WITH PASSWORD 'taskmanager';" && createdb -O taskmanager taskmanager && psql -d taskmanager -f database/schema.sql
-```
-
 > `-s` makes `taskmanager` a superuser — needed because `schema.sql` runs as
-> whichever OS-mapped role invokes `psql`, not necessarily `taskmanager`
-> itself; without it the app hits "permission denied for table users" at
-> runtime. This mirrors how the official `postgres` Docker image's
-> `POSTGRES_USER` is a superuser too.
+> whichever role invokes `psql`, not necessarily `taskmanager` itself;
+> without it the app hits "permission denied for table users" at runtime.
+> This mirrors how the official `postgres` Docker image's `POSTGRES_USER` is
+> a superuser too. If these commands aren't found, add PostgreSQL's `bin`
+> folder to PATH first.
 
 ### Run backend
 
@@ -102,8 +69,6 @@ SQLAlchemy, psycopg2, pydantic, python-jose, passlib, pytest...).
 
 > `bcrypt` is pinned to `4.0.1` on purpose — `passlib` 1.7.4 breaks on
 > `bcrypt` 4.1+/5.x (password hashing raises an error at runtime).
-
-**Windows:**
 
 ```powershell
 cd backend
@@ -114,19 +79,6 @@ copy .env.example .env
 uvicorn app.main:app --reload
 ```
 
-**macOS / Linux:**
-
-```bash
-cd backend && python3.11 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
-cp .env.example .env            # edit DATABASE_URL / SECRET_KEY
-uvicorn app.main:app --reload
-```
-
-> Use `python3.11` (`py -3.11` on Windows) specifically on macOS —
-> Homebrew's default `python3` (3.14 on macOS 26 Tahoe) has a broken
-> `pyexpat` that makes `venv` creation fail with `ensurepip` errors. Any
-> `python3.10`+ works fine on other OSes.
-
 Backend runs on **port 8000**.
 
 ### Run frontend
@@ -134,20 +86,10 @@ Backend runs on **port 8000**.
 Node packages are declared in `frontend/package.json` (React 18, React
 Router 6, axios, Vite 5).
 
-**Windows:**
-
 ```powershell
 cd frontend
 npm install
 copy .env.example .env
-npm run dev
-```
-
-**macOS / Linux:**
-
-```bash
-cd frontend && npm install
-cp .env.example .env             # set VITE_API_URL if backend isn't on :8000
 npm run dev
 ```
 
